@@ -11,16 +11,27 @@ class GameException(Exception):
 
 
 def main():
-    mode = sys.argv[1]
-    f = sys.argv[2]
-    n = sys.argv[3]
-    depth = sys.argv[4]
+    # one-move mode:
+    # python main.py input1.txt 7
+    # interactive-mode
+    # python main.py interactive input1.txt computer-next 7
+    if 'interactive' in sys.argv:
+        mode = sys.argv[1]
+        f = sys.argv[2]
+        n = sys.argv[3]
+        depth = sys.argv[4]
+    else:
+        mode = 'one-move'
+        n = 'NA'
+        f = sys.argv[1]
+        depth = sys.argv[2]
     rows = 6
     cols = 7
     board = []
     graph = nx.Graph
     human = 0
     computer = 0
+    out = 'output.txt'
 
     with open(f, 'r') as file:
         for _ in range(rows):
@@ -28,16 +39,16 @@ def main():
             board.append([int(char) for char in row.strip()])
         next_player = int(file.readline().strip())
 
-    if n == 'computer-next':
-        computer = next_player
-        human = switch_player(computer)
-    else:  # human-next
-        human = next_player
-        computer = switch_player(human)
-
     show_board(board)
 
     if mode == 'interactive':
+        if n == 'computer-next':
+            computer = next_player
+            human = switch_player(computer)
+        else:  # human-next
+            human = next_player
+            computer = switch_player(human)
+
         while not board_is_full(board):
             if next_player == human:
                 valid_choice = False
@@ -56,10 +67,11 @@ def main():
                 board = place_piece(board, chosen_col, next_player)
             next_player = switch_player(next_player)
             show_board(board)
-    else:
+    else:  # one-move mode
         best_col = choose_move(board, next_player, depth)
         board = place_piece(board, best_col, next_player)
         next_player = switch_player(next_player)
+        make_output(out, board, next_player)
 
 
 def choose_move(board, next_player, depth):
@@ -96,6 +108,16 @@ def show_board(board):
 
 def switch_player(p):
     return 1 if p == 2 else 2
+
+
+def make_output(path, board, next_player):
+    with open(path, 'w') as f:
+        for row in board:
+            for place in row:
+                f.write(str(place))
+            f.write('\n')
+        f.write(str(next_player))
+        f.write('\n')
 
 
 if __name__ == "__main__":
