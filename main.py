@@ -30,9 +30,6 @@ def main():
     rows = 6
     cols = 7
     board = []
-    graph = nx.Graph
-    human = 0
-    computer = 0
     out = 'output.txt'
 
     with open(f, 'r') as file:
@@ -53,13 +50,13 @@ def main():
 
         while not board_is_full(board):
             if next_player == human:
-                chosen_col = get_player_move(board, human)
+                player_move(board, human)
             else:  # computers turn
                 chosen_col = choose_move(board, computer, depth)
                 time.sleep(0.5)
                 print(f'Computer chooses column: {chosen_col}')
+                place_piece(board, chosen_col, next_player)
 
-            board = place_piece(board, chosen_col, next_player)
             next_player = switch_player(next_player)
             show_board(board)
     else:  # one-move mode
@@ -75,7 +72,7 @@ def choose_move(board, next_player, depth):
     return best_col
 
 
-def get_player_move(board, player):
+def player_move(board, player):
     valid_choice = False
     chosen_col = -1
     while not valid_choice:
