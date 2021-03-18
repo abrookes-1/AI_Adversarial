@@ -53,23 +53,15 @@ def main():
 
         while not board_is_full(board):
             if next_player == human:
-                valid_choice = False
-                while not valid_choice:
-                    chosen_col = int(input('Choose col: '))
-                    try:
-                        board = place_piece(board, chosen_col, next_player)
-                        valid_choice = True
-                    except GameException as e:
-                        if e.msg == 'Chosen column is full':
-                            print(e.msg)
+                chosen_col = get_player_move(board, human)
             else:  # computers turn
                 chosen_col = choose_move(board, computer, depth)
-                time.sleep(1)
+                time.sleep(0.5)
                 print(f'Computer chooses column: {chosen_col}')
-                board = place_piece(board, chosen_col, next_player)
+
+            board = place_piece(board, chosen_col, next_player)
             next_player = switch_player(next_player)
             show_board(board)
-            print(count_score(board))
     else:  # one-move mode
         best_col = choose_move(board, next_player, depth)
         board = place_piece(board, best_col, next_player)
@@ -81,6 +73,20 @@ def choose_move(board, next_player, depth):
     best_col = 0
 
     return best_col
+
+
+def get_player_move(board, player):
+    valid_choice = False
+    chosen_col = -1
+    while not valid_choice:
+        chosen_col = int(input('Choose col: '))
+        try:
+            place_piece(board, chosen_col, player)
+            valid_choice = True
+        except GameException as e:
+            if e.msg == 'Chosen column is full':
+                print(e.msg)
+    return chosen_col
 
 
 def place_piece(board, col, player):
