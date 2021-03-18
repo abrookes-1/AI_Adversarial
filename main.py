@@ -11,9 +11,9 @@ class GameException(Exception):
 
 
 def main():
-    # one-move mode:
+    # run one-move mode:
     # python main.py input1.txt 7
-    # interactive-mode
+    # run interactive-mode
     # python main.py interactive input1.txt computer-next 7
     if 'interactive' in sys.argv:
         mode = sys.argv[1]
