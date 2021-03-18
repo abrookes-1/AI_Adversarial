@@ -1,6 +1,5 @@
 import sys
-import time
-import networkx as nx
+from copy import deepcopy
 
 from connect4.count_score import count_score
 
@@ -21,12 +20,12 @@ def main():
         mode = sys.argv[1]
         f = sys.argv[2]
         n = sys.argv[3]
-        depth = sys.argv[4]
+        depth = int(sys.argv[4])
     else:
         mode = 'one-move'
         n = 'NA'
         f = sys.argv[1]
-        depth = sys.argv[2]
+        depth = int(sys.argv[2])
     rows = 6
     cols = 7
     board = []
@@ -50,26 +49,60 @@ def main():
 
         while not board_is_full(board):
             if next_player == human:
-                player_move(board, human)
+                chosen_col = player_move(board, human)
             else:  # computers turn
-                chosen_col = choose_move(board, computer, depth)
-                time.sleep(0.5)
+                chosen_col, score = choose_move(board, computer, depth)
+                # time.sleep(0.5)
                 print(f'Computer chooses column: {chosen_col}')
-                place_piece(board, chosen_col, next_player)
+            board = place_piece(board, chosen_col, next_player)
 
             next_player = switch_player(next_player)
             show_board(board)
     else:  # one-move mode
-        best_col = choose_move(board, next_player, depth)
-        board = place_piece(board, best_col, next_player)
-        next_player = switch_player(next_player)
-        make_output(out, board, next_player)
+        if board_is_full(board):
+            print('Game is complete')
+        else:
+            best_col, score = choose_move(board, next_player, depth)
+            print(f'Computer chooses column {best_col} for player {next_player} with potential score {score}')
+            board = place_piece(board, best_col, next_player)
+            next_player = switch_player(next_player)
+            show_board(board)
+            make_output(out, board, next_player)
 
 
-def choose_move(board, next_player, depth):
-    best_col = 0
+def choose_move(board, next_player, max_depth):
+    best_score, best_col = minimax(board, max_depth, -1000000000, 1000000000, next_player)
+    return best_col, best_score
 
-    return best_col
+
+def minimax(state, depth, alpha, beta, player):
+    if depth == 0 or board_is_full(state):
+        score = count_score(state)
+        return score[0] - score[1], None
+
+    # val = player1 score - player2 score
+    # player1 is maximising
+    best_eval = -1000000000 if player == 1 else 1000000000
+    best_col = -1
+
+    for i in get_valid_rows(state):
+        child_state = place_piece(state, i, player)
+        val, _ = minimax(child_state, depth-1, alpha, beta, switch_player(player))
+        if player == 1:
+            if val > best_eval:
+                best_eval = val
+                best_col = i
+            if val > alpha:
+                alpha = val
+        else:
+            if val < best_eval:
+                best_eval = val
+                best_col = i
+            if val < alpha:
+                alpha = val
+        if beta <= alpha:
+            break
+    return best_eval, best_col
 
 
 def player_move(board, player):
@@ -95,15 +128,23 @@ def place_piece(board, col, player):
     if top_row == -1:
         raise GameException('Chosen column is full')
 
-    board[top_row][col] = player
-    return board
+    new_board = deepcopy(board)
+    new_board[top_row][col] = player
+    return new_board
+
+
+def get_valid_rows(board):
+    v = []
+    for i in range(len(board[0])):
+        if board[0][i] == 0:
+            v.append(i)
+    return v
 
 
 def board_is_full(board):
-    for row in board:
-        for place in row:
-            if place == 0:
-                return False
+    for place in board[0]:
+        if place == 0:
+            return False
     return True
 
 
