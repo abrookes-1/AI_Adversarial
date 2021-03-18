@@ -2,6 +2,8 @@ import sys
 import time
 import networkx as nx
 
+from connect4.count_score import count_score
+
 
 class GameException(Exception):
     msg = ''
@@ -67,6 +69,7 @@ def main():
                 board = place_piece(board, chosen_col, next_player)
             next_player = switch_player(next_player)
             show_board(board)
+            print(count_score(board))
     else:  # one-move mode
         best_col = choose_move(board, next_player, depth)
         board = place_piece(board, best_col, next_player)
@@ -103,7 +106,9 @@ def board_is_full(board):
 
 def show_board(board):
     for row in board:
-        print(row)
+        for place in row:
+            print(place, end=' ')
+        print()
 
 
 def switch_player(p):
